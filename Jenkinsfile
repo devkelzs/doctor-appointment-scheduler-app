@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = 'http://13.223.2.175:9000'
+        NVD_API_KEY = credentials('NVD_API_KEY')
     }
 
     stages {
