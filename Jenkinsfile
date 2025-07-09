@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = 'http://13.223.2.175:9000'
-        NVD_API_KEY = credentials('NVD_API_KEY') // Securely load OWASP API key
+        NVD_API_KEY = credentials('NVD_API_KEY')
     }
 
     stages {
@@ -44,8 +44,18 @@ pipeline {
 
         stage('Security Analysis - OWASP Dependency Check') {
             steps {
-                // Optional: Safe preview of first 4 characters of API key
+                // Optional debug output
                 sh 'echo "Using NVD API Key (prefix): $(echo $NVD_API_KEY | cut -c1-4)****"'
 
-                // Run OWASP Dependency Check with API key
-                sh './mvnw org.owasp:depen
+                // FIXED multi-line command with triple quotes
+                sh """
+                    ./mvnw org.owasp:dependency-check-maven:check \
+                    -Dformat=ALL \
+                    -Dnvd.api.key=$NVD_API_KEY
+                """
+
+                echo 'OWASP Dependency Check completed.'
+            }
+        }
+    }
+}
