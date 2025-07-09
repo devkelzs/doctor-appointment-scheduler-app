@@ -3,14 +3,14 @@ pipeline {
 
     environment {
         SONAR_HOST_URL = 'http://13.223.2.175:9000'
-        NVD_API_KEY = credentials('NVD_API_KEY') // Securely load API key
+        NVD_API_KEY = credentials('NVD_API_KEY') // Securely load OWASP API key
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'master', url: 'https://github.com/devkelzs/doctor-appointment-scheduler-app.git'
-                echo 'Checking out..'
+                echo 'Checking out repository...'
             }
         }
 
@@ -18,14 +18,14 @@ pipeline {
             steps {
                 sh 'chmod +x mvnw'
                 sh './mvnw clean package -DskipTests=true'
-                echo 'Building..'
+                echo 'Build complete.'
             }
         }
 
         stage('Unit Tests') {
             steps {
                 sh './mvnw test'
-                echo 'Testing..'
+                echo 'Unit tests completed.'
             }
         }
 
@@ -37,21 +37,15 @@ pipeline {
                         -Dsonar.host.url=$SONAR_HOST_URL \
                         -Dsonar.token=$SONAR_TOKEN
                     """
-                    echo 'SonarQube analysis completed..'
+                    echo 'SonarQube analysis completed.'
                 }
             }
         }
 
         stage('Security Analysis - OWASP Dependency Check') {
             steps {
-                // Confirm key is injected (optional, safe preview)
-                sh 'echo "Using NVD API Key: ${NVD_API_KEY:0:4}****"'
+                // Optional: Safe preview of first 4 characters of API key
+                sh 'echo "Using NVD API Key (prefix): $(echo $NVD_API_KEY | cut -c1-4)****"'
 
-                // Pass the API key properly
-                sh "./mvnw org.owasp:dependency-check-maven:check -Dformat=ALL -Dnvd.api.key=$NVD_API_KEY"
-
-                echo 'OWASP Dependency Check completed..'
-            }
-        }
-    }
-}
+                // Run OWASP Dependency Check with API key
+                sh './mvnw org.owasp:depen
